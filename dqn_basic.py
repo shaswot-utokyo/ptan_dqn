@@ -113,7 +113,8 @@ with common.RewardTracker(writer, params['stop_reward']) as reward_tracker: #cre
         optimizer.zero_grad()
         batch = buffer.sample(params['batch_size'])
         loss_v = common.calc_loss_dqn(batch, net, tgt_net.target_model, gamma=params['gamma'], device=device)
-        writer.add_scalar("loss", loss_v, frame_idx)
+        if frame_idx % 1E3 == 0:
+            writer.add_scalar("loss", loss_v, frame_idx)
         loss_v.backward()
         optimizer.step()
 

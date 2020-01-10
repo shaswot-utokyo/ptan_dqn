@@ -1,0 +1,18 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+.idea/
+
+# Tensorboard Runs
+runs/
+
+# Pytorch models
+/models
+*.pt
+
+# Job logs
+/job_outputs

@@ -13,7 +13,7 @@
 #SBATCH  --gres=gpu:1
 
 # allocate run time
-#SBATCH --time=10:00:00
+#SBATCH --time=20:00:00
 
 # Number of nodes
 #SBATCH -N 1
@@ -32,7 +32,9 @@
 # get file with the list of seeds
 seed=$1
 experiment=$2
-python dqn_basic.py --cuda --seed=$1 $2
+# python dqn_basic.py --cuda --seed=$1 $2
+python dqn_srg.py --cuda --seed=$1 $2
+
 
 ## USAGE
 ## sbatch ist_single_job.sh <seed> <envname>

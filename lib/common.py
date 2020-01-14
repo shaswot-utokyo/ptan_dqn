@@ -223,6 +223,36 @@ def calc_loss_dqn(batch, net, tgt_net, gamma, device="cpu"):
     expected_state_action_values = next_state_values.detach() * gamma + rewards_v
     return nn.MSELoss()(state_action_values, expected_state_action_values)"""
 
+
+def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu"):
+    states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
+
+    states_v = torch.tensor(states).to(device)
+    next_states_v = torch.tensor(next_states).to(device)
+    actions_v = torch.tensor(actions).to(device)
+    rewards_v = torch.tensor(rewards).to(device)
+    done_mask = torch.tensor(dones,dtype=torch.bool).to(device)
+
+    state_action_all_values, state_features = net(states_v)
+    state_action_values = state_action_all_values.gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
+    with torch.no_grad():
+        _, next_state_features = net(next_states_v)
+    next_state_features.detach()
+    
+    next_state_all_values, _ = tgt_net(next_states_v)
+    next_state_values = next_state_all_values.max(1)[0]
+    next_state_values[done_mask] = 0.0
+    next_state_values = next_state_values.detach()
+
+    expected_state_action_values = next_state_values * gamma + rewards_v
+    
+    feature_loss = torch.dist(state_features, next_state_features, p=2)
+    qvalue_loss = nn.MSELoss()(state_action_values, expected_state_action_values)
+    
+    loss = 1E-4*feature_loss + qvalue_loss
+    
+    return loss
+
 # tracks the total reward at the end of every episode
 # tracks the mean reward for the last 100 episodes
 # write the values in tensorboard

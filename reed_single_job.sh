@@ -12,5 +12,7 @@ export PYTHONUSERBASE=/lustre/gk37/k37004/envs/rl
 export PATH=$PYTHONUSERBASE/bin:$PATH
 
 
-python dqn_basic.py --cuda --seed=${seed} ${experiment}
+# python dqn_basic.py --cuda --seed=${seed} ${experiment}
+python dqn_srg.py --cuda --seed=${seed} ${experiment}
+
 

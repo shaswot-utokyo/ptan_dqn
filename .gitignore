@@ -9,6 +9,7 @@ __pycache__/
 
 # Tensorboard Runs
 runs/
+trials/
 
 # Pytorch models
 /models

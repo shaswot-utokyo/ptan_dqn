@@ -17,7 +17,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from lib import dqn_model, common
 
-
+import datetime
 import os
 import random
 import numpy as np
@@ -50,12 +50,17 @@ torch.backends.cudnn.benchmark = False
 experiment = args.experiment
 params = common.HYPERPARAMS[experiment]
 
+print("SEED: ",seed)
+print("EXPERIMENT: ",experiment)
+print("TIME: ", datetime.datetime.now().strftime("%Y-%b-%d-%H-%M-%S")
+print("\n")
 
 env = gym.make(params['env_name'])
 env = ptan.common.wrappers.wrap_dqn(env)
 
-tag = params['run_name'] + "-basic_srg" + '_'+ str(seed)
-writer = SummaryWriter(comment="-"+ tag)
+tag = params['run_name'] + "-basic" + '_'+ str(seed)
+writer_folder = './runs/'+ params['run_name'] + "-basic" + "/" + str(seed) +  '_' + datetime.datetime.now().strftime("%d-%b-%H-%M-%S")
+writer = SummaryWriter(log_dir=writer_folder)
 
 net = dqn_model.DQN_A(env.observation_space.shape, 
                     env.action_space.n).to(device)

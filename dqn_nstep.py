@@ -55,7 +55,7 @@ params = common.HYPERPARAMS[experiment]
 
 print("SEED: ",seed)
 print("EXPERIMENT: ",experiment)
-print("TIME: ", datetime.datetime.now().strftime("%Y-%b-%d-%H-%M-%S")
+print("TIME: ", datetime.datetime.now().strftime("%Y-%b-%d-%H-%M-%S"))
 print("\n")
 
 env = gym.make(params['env_name'])

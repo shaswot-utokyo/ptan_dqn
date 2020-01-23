@@ -9,12 +9,13 @@
 
 # use partition 'p'
 #SBATCH -p p
+##SBATCH -p v
 
 # use gpu resource
 #SBATCH  --gres=gpu:1
 
 # allocate run time
-#SBATCH --time=20:00:00
+#SBATCH --time=10:00:00
 
 # Number of nodes
 #SBATCH -N 1
@@ -32,10 +33,10 @@
 # get file with the list of seeds
 seed=$1
 experiment=$2
-python dqn_test.py --cuda --seed=$1 $2
+# python dqn_test.py --cuda --seed=$1 $2
 # python dqn_basic.py --cuda --seed=$1 $2
 # python dqn_srg.py --cuda --seed=$1 $2
-#python dqn_nstep.py --cuda --seed=$1 --nsteps=3 $2
+python dqn_nstep.py --cuda --seed=$1 --nsteps=3 $2
 
 sstat -p -j $SLURM_JOB_ID.batch --format=JobID,MaxRss,MaxVMSize,NTasks,ConsumedEnergy
 ##sacct -j %j --format=User,JobID,Jobname,partition,state,time,start,end,elapsed,MaxRss,MaxVMSize,nnodes,ncpus,nodelist

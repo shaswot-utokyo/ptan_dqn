@@ -16,4 +16,5 @@ trials/
 *.pt
 
 # Job logs
+/ist_job_temp
 /job_outputs

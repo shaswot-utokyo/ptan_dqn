@@ -32,9 +32,12 @@
 # get file with the list of seeds
 seed=$1
 experiment=$2
+# python dqn_test.py --cuda --seed=$1 $2
 # python dqn_basic.py --cuda --seed=$1 $2
-python dqn_srg.py --cuda --seed=$1 $2
+# python dqn_srg.py --cuda --seed=$1 $2
+python dqn_nsteps.py --cuda --seed=$1 --nsteps=3 $2
 
+sacct -j %j --format=User,JobID,Jobname,partition,state,time,start,end,elapsed,MaxRss,MaxVMSize,nnodes,ncpus,nodelist
 
 ## USAGE
 ## sbatch ist_single_job.sh <seed> <envname>

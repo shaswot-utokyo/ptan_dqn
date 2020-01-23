@@ -61,8 +61,8 @@ print("\n")
 env = gym.make(params['env_name'])
 env = ptan.common.wrappers.wrap_dqn(env)
 
-tag = params['run_name'] + "-basic" + '_'+ str(seed)
-writer_folder = './runs/'+ params['run_name'] + "-basic" + "/" + str(seed) +  '_' + datetime.datetime.now().strftime("%d-%b-%H-%M-%S")
+tag = params['run_name'] + "-nsteps_" + str(args.nsteps) +  '_'+ str(seed)
+writer_folder = './runs/'+ params['run_name'] + "-nsteps_" + str(args.nsteps) + "/" + str(seed) +  '_' + datetime.datetime.now().strftime("%d-%b-%H-%M-%S")
 writer = SummaryWriter(log_dir=writer_folder)
 
 net = dqn_model.DQN(env.observation_space.shape, 

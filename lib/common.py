@@ -6,6 +6,34 @@ import torch.nn as nn
 
 
 HYPERPARAMS = {
+     'beamrider-v0': {
+        'env_name':         "BeamRiderNoFrameskip-v4",
+        'stop_reward':       6000,
+        'run_name':         'beamrider-v0',
+        'replay_size':      100000, 
+        'replay_initial':   10000,
+        'target_net_sync':  1000,
+        'epsilon_frames':   10**5,
+        'epsilon_start':    1.0,
+        'epsilon_final':    0.1,
+        'learning_rate':    0.0001,
+        'gamma':            0.99,
+        'batch_size':       32
+    },
+    'freeway-v0': {
+        'env_name':         "FreewayNoFrameskip-v4",
+        'stop_reward':       25,
+        'run_name':         'freeway-v0',
+        'replay_size':      100000, 
+        'replay_initial':   10000,
+        'target_net_sync':  1000,
+        'epsilon_frames':   10**5,
+        'epsilon_start':    1.0,
+        'epsilon_final':    0.01,
+        'learning_rate':    0.0001,
+        'gamma':            0.99,
+        'batch_size':       64 # increased batch size to 128
+    },
      'pong3': {
         'env_name':         "PongNoFrameskip-v4",
         'stop_reward':      18.0,
@@ -223,7 +251,6 @@ def calc_loss_dqn(batch, net, tgt_net, gamma, device="cpu"):
     expected_state_action_values = next_state_values.detach() * gamma + rewards_v
     return nn.MSELoss()(state_action_values, expected_state_action_values)"""
 
-
 def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu"):
     states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
 
@@ -251,7 +278,7 @@ def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu"):
     
     loss = 1E-4*feature_loss + qvalue_loss
     
-    return loss
+    return loss, feature_loss, qvalue_loss
 
 # tracks the total reward at the end of every episode
 # tracks the mean reward for the last 100 episodes
@@ -278,10 +305,10 @@ class RewardTracker:
         self.ts = time.time()
         mean_reward = np.mean(self.total_rewards[-100:])
         epsilon_str = "" if epsilon is None else ", eps %.2f" % epsilon
-        #print("%d: done %d games, mean reward %.3f, speed %.2f f/s%s" % (
-        #    frame, len(self.total_rewards), mean_reward, speed, epsilon_str
-        #))
-        #sys.stdout.flush()
+        print("%d: done %d games, mean reward %.3f, speed %.2f f/s%s" % (
+           frame, len(self.total_rewards), mean_reward, speed, epsilon_str
+        ))
+        sys.stdout.flush()
         if epsilon is not None:
             self.writer.add_scalar("epsilon", epsilon, frame)
         self.writer.add_scalar("speed", speed, frame)

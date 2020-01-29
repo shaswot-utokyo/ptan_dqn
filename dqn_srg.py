@@ -58,8 +58,8 @@ print("\n")
 env = gym.make(params['env_name'])
 env = ptan.common.wrappers.wrap_dqn(env)
 
-tag = params['run_name'] + "-basic" + '_'+ str(seed)
-writer_folder = './runs/'+ params['run_name'] + "-basic" + "/" + str(seed) +  '_' + datetime.datetime.now().strftime("%d-%b-%H-%M-%S")
+tag = params['run_name'] + "-basic" + '-'+ str(seed)
+writer_folder = './runs/'+ params['run_name'] + "-basic" + "/" + str(seed) +  '-' + datetime.datetime.now().strftime("%d-%b-%H-%M-%S")
 writer = SummaryWriter(log_dir=writer_folder)
 
 net = dqn_model.DQN_A(env.observation_space.shape, 
@@ -141,9 +141,11 @@ with common.RewardTracker(writer, params['stop_reward']) as reward_tracker: #cre
 
         optimizer.zero_grad()
         batch = buffer.sample(params['batch_size'])
-        loss_v = common.calc_loss_srg(batch, net, tgt_net.target_model, gamma=params['gamma'], device=device)
+        loss_v, feature_loss, qvalue_loss = common.calc_loss_srg(batch, net, tgt_net.target_model, gamma=params['gamma'], device=device)
         if frame_idx % 1E3 == 0:
             writer.add_scalar("loss", loss_v, frame_idx)
+            writer.add_scalar("feature_loss", feature_loss, frame_idx)
+            writer.add_scalar("qvalue_loss", qvalue_loss, frame_idx)
         loss_v.backward()
         optimizer.step()
 

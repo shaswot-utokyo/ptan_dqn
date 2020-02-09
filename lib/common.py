@@ -6,10 +6,10 @@ import torch.nn as nn
 
 
 HYPERPARAMS = {
-    'beamrider-v1': {
+    'beamrider-v0': {
         'env_name':         "BeamRiderNoFrameskip-v4",
         'stop_reward':       6000,
-        'run_name':         'beamrider-v1',
+        'run_name':         'beamrider-v0',
         'replay_size':      100000, 
         'replay_initial':   10000,
         'target_net_sync':  1000,
@@ -19,34 +19,6 @@ HYPERPARAMS = {
         'learning_rate':    0.0001,
         'gamma':            0.99,
         'batch_size':       32
-    },
-     'beamrider-v0': {
-        'env_name':         "BeamRiderNoFrameskip-v4",
-        'stop_reward':       6000,
-        'run_name':         'beamrider-v0',
-        'replay_size':      100000, 
-        'replay_initial':   10000,
-        'target_net_sync':  1000,
-        'epsilon_frames':   10**5,
-        'epsilon_start':    1.0,
-        'epsilon_final':    0.1,
-        'learning_rate':    0.0001,
-        'gamma':            0.99,
-        'batch_size':       32
-    },
-    'freeway-v0': {
-        'env_name':         "FreewayNoFrameskip-v4",
-        'stop_reward':       25,
-        'run_name':         'freeway-v0',
-        'replay_size':      100000, 
-        'replay_initial':   10000,
-        'target_net_sync':  1000,
-        'epsilon_frames':   10**5,
-        'epsilon_start':    1.0,
-        'epsilon_final':    0.01,
-        'learning_rate':    0.0001,
-        'gamma':            0.99,
-        'batch_size':       64 # increased batch size to 128
     },
      'pong3': {
         'env_name':         "PongNoFrameskip-v4",

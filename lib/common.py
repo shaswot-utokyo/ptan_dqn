@@ -6,6 +6,20 @@ import torch.nn as nn
 
 
 HYPERPARAMS = {
+    'beamrider-v1': {
+        'env_name':         "BeamRiderNoFrameskip-v4",
+        'stop_reward':       6000,
+        'run_name':         'beamrider-v1',
+        'replay_size':      100000, 
+        'replay_initial':   10000,
+        'target_net_sync':  1000,
+        'epsilon_frames':   10**6,
+        'epsilon_start':    1.0,
+        'epsilon_final':    0.1,
+        'learning_rate':    0.0001,
+        'gamma':            0.99,
+        'batch_size':       32
+    },
      'beamrider-v0': {
         'env_name':         "BeamRiderNoFrameskip-v4",
         'stop_reward':       6000,
@@ -280,6 +294,37 @@ def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu"):
     
     return loss, feature_loss, qvalue_loss
 
+def calc_loss_srg_disabled(batch, net, tgt_net, gamma, device="cpu"):
+    states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
+
+    states_v = torch.tensor(states).to(device)
+    next_states_v = torch.tensor(next_states).to(device)
+    actions_v = torch.tensor(actions).to(device)
+    rewards_v = torch.tensor(rewards).to(device)
+    done_mask = torch.tensor(dones,dtype=torch.bool).to(device)
+
+    state_action_all_values, state_features = net(states_v)
+    state_action_values = state_action_all_values.gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
+    with torch.no_grad():
+        _, next_state_features = net(next_states_v)
+    next_state_features.detach()
+    
+    next_state_all_values, _ = tgt_net(next_states_v)
+    next_state_values = next_state_all_values.max(1)[0]
+    next_state_values[done_mask] = 0.0
+    next_state_values = next_state_values.detach()
+
+    expected_state_action_values = next_state_values * gamma + rewards_v
+    
+    feature_loss = torch.dist(state_features, next_state_features, p=2)
+    qvalue_loss = nn.MSELoss()(state_action_values, expected_state_action_values)
+    
+    loss = qvalue_loss
+    
+    return loss, feature_loss, qvalue_loss
+
+
+
 # tracks the total reward at the end of every episode
 # tracks the mean reward for the last 100 episodes
 # write the values in tensorboard
@@ -305,10 +350,10 @@ class RewardTracker:
         self.ts = time.time()
         mean_reward = np.mean(self.total_rewards[-100:])
         epsilon_str = "" if epsilon is None else ", eps %.2f" % epsilon
-        print("%d: done %d games, mean reward %.3f, speed %.2f f/s%s" % (
-           frame, len(self.total_rewards), mean_reward, speed, epsilon_str
-        ))
-        sys.stdout.flush()
+#         print("%d: done %d games, mean reward %.3f, speed %.2f f/s%s" % (
+#            frame, len(self.total_rewards), mean_reward, speed, epsilon_str
+#         ))
+#         sys.stdout.flush()
         if epsilon is not None:
             self.writer.add_scalar("epsilon", epsilon, frame)
         self.writer.add_scalar("speed", speed, frame)

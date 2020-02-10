@@ -8,7 +8,9 @@ while IFS= read -r line
 do
     ## reading each line
     echo "$line"
-    qsub -v seed="$line",experiment="$2" reed_single_job.sh
+#     qsub -v seed="$line",experiment="$2" reed_single_job.sh    
+    qsub -v seed="$line",experiment="$2",  reed_single_job.sh
+
     sleep 5 
 done < "$filename"
 

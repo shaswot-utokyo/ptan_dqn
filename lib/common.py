@@ -203,7 +203,7 @@ def unpack_batch(batch):
     return np.array(states, copy=False), np.array(actions), np.array(rewards, dtype=np.float32), \
            np.array(dones, dtype=np.bool_), np.array(last_states, copy=False)
 
-def calc_loss_dqn(batch, net, tgt_net, gamma, device="cpu"):
+def calc_loss_dqn(batch, net, tgt_net, gamma, device="cpu", double=False):
     states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
 
     states_v = torch.tensor(states).to(device)
@@ -213,29 +213,29 @@ def calc_loss_dqn(batch, net, tgt_net, gamma, device="cpu"):
     done_mask = torch.tensor(dones,dtype=torch.bool).to(device)
 
     state_action_values = net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
-    next_state_values = tgt_net(next_states_v).max(1)[0]
+    if double: # double-DQN
+        next_state_actions = net(next_states_v).max(1)[1] # get greedy actions from policy net
+        next_state_values = tgt_net(next_states_v).gather(1, next_state_actions.unsqueeze(-1)).squeeze(-1)
+    else:
+        next_state_values = tgt_net(next_states_v).max(1)[0]
     next_state_values[done_mask] = 0.0
 
     expected_state_action_values = next_state_values.detach() * gamma + rewards_v
     return nn.MSELoss()(state_action_values, expected_state_action_values)
 
-"""def calc_loss_dqn(batch, net, tgt_net, gamma, device="cpu"):
-    states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
-
-    states_v = torch.tensor(states).to(device)
-    next_states_v = torch.tensor(next_states).to(device)
-    actions_v = torch.tensor(actions).to(device)
-    rewards_v = torch.tensor(rewards).to(device)
-    done_mask = torch.ByteTensor(dones).to(device)
-
-#     done_mask = torch.tensor(dones,dtype=torch.bool).to(device)
-
-    state_action_values = net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
-    next_state_values = tgt_net(next_states_v).max(1)[0]
-    next_state_values[done_mask] = 0.0
-
-    expected_state_action_values = next_state_values.detach() * gamma + rewards_v
-    return nn.MSELoss()(state_action_values, expected_state_action_values)"""
+# 
+def calc_values_of_states(states, net, device="cpu"):
+    mean_vals = []
+    # np.array_split splits the array into sub-arrays 
+    # (in this case, each sub-array has a max size of 64)
+    # For an array of length l that should be split into n sections, 
+    # it returns l % n sub-arrays of size l//n + 1 and the rest of size l//n.
+    for batch in np.array_split(states, 64): 
+        states_v = torch.tensor(batch).to(device)
+        action_values_v = net(states_v) #get q_values of all actions for all the 64 states
+        best_action_values_v = action_values_v.max(1)[0] # get maximum q_values for each of the 64 states
+        mean_vals.append(best_action_values_v.mean().item()) # take mean of the 64 max q_values
+    return np.mean(mean_vals)
 
 def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu"):
     states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays

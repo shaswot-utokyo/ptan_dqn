@@ -36,7 +36,9 @@ experiment=$2
 # python dqn_test.py --cuda --seed=$1 $2
 # python dqn_basic.py --cuda --seed=$1 $2
 # python dqn_srg.py --cuda --seed=$1 $2
-python dqn_nstep.py --cuda --seed=$1 --nsteps=3 $2
+# python dqn_nstep.py --cuda --seed=$1 --nsteps=3 $2
+python dqn_nstep_double_dueling.py --cuda --seed=$1 --nsteps=3 --double --dueling $2
+
 
 sstat -p -j $SLURM_JOB_ID.batch --format=JobID,MaxRss,MaxVMSize,NTasks,ConsumedEnergy
 ##sacct -j %j --format=User,JobID,Jobname,partition,state,time,start,end,elapsed,MaxRss,MaxVMSize,nnodes,ncpus,nodelist

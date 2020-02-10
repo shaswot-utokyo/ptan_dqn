@@ -85,9 +85,9 @@ writer = SummaryWriter(log_dir=writer_folder)
 if args.dueling:
     net = dqn_model.DuelingDQN(env.observation_space.shape, 
                     env.action_space.n).to(device)
-    
-net = dqn_model.DQN(env.observation_space.shape, 
-                    env.action_space.n).to(device)
+else:
+    net = dqn_model.DQN(env.observation_space.shape, 
+                        env.action_space.n).to(device)
 
 tgt_net = ptan.agent.TargetNet(net)
 

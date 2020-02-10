@@ -22,17 +22,21 @@ import os
 import random
 import numpy as np
 
-REWARD_STEPS_DEFAULT = 2
+ROLLOUT_STEPS_DEFAULT = 1
+# evaluate Q-values of random states
+NO_OF_STATES_TO_EVALUATE = 1000 # how many states to sample to evaluate
+EVAL_FREQ = 100 # how often to evaluate
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cuda", default=False, action="store_true", help="Enable GPU [default:False]")
 parser.add_argument("--seed", default=42, type=int, help="Set seed [default: 42]")
-parser.add_argument("--nsteps", default=REWARD_STEPS_DEFAULT, type=int, help="Count of steps to unroll Bellman")
+parser.add_argument("--nsteps", default=ROLLOUT_STEPS_DEFAULT, type=int, help="Count of steps to unroll Bellman")
+parser.add_argument("--double", default=False, action="store_true", help="Enable double DQN")
 parser.add_argument("experiment", help="Experiment to run. Specified in ./lib/common.py")
 
-
-
 args = parser.parse_args()
+
+
 
 # set device
 USE_GPU = args.cuda
@@ -61,9 +65,15 @@ print("\n")
 env = gym.make(params['env_name'])
 env = ptan.common.wrappers.wrap_dqn(env)
 
-nstep_tag = str(args.nsteps) +"step"
-tag = params['run_name'] + "-" + nstep_tag  +  '-'+ str(seed)
-writer_folder = './runs/'+ params['run_name'] + "-" + nstep_tag  + "/" + str(seed) +  '-' + datetime.datetime.now().strftime("%d-%b-%H-%M-%S")
+# Tensorboard log file/directory
+nstep_tag = str(args.nsteps)+"step"
+tag = params['run_name'] + '-' + nstep_tag  # nstep rollouts
+if args.double:
+    double_tag = 'double'
+    tag = tag + '-' + double_tag # double dqn
+tag = tag + '-'+ str(seed) # seed
+
+writer_folder = './runs/'+ params['run_name'] + "-" + nstep_tag  + '-' + double_tag + "/" + str(seed) +  '-' + datetime.datetime.now().strftime("%d-%b-%H-%M-%S")
 writer = SummaryWriter(log_dir=writer_folder)
 
 net = dqn_model.DQN(env.observation_space.shape, 
@@ -85,6 +95,8 @@ buffer = ptan.experience.ExperienceReplayBuffer(exp_source, buffer_size=params['
 optimizer = optim.Adam(net.parameters(), lr=params['learning_rate'])
 
 frame_idx = 0
+eval_states = None # will be populated with held-out states
+
 with common.RewardTracker(writer, params['stop_reward']) as reward_tracker: #create a reward tracker object
     while True:
         frame_idx += 1
@@ -119,9 +131,15 @@ with common.RewardTracker(writer, params['stop_reward']) as reward_tracker: #cre
         if len(buffer) < params['replay_initial']:
             continue
 
+        # evaluate states
+        if eval_states is None:
+                eval_states = buffer.sample(NO_OF_STATES_TO_EVALUATE)
+                eval_states = [np.array(transition.state, copy=False) for transition in eval_states]
+                eval_states = np.array(eval_states, copy=False)
+
         optimizer.zero_grad()
         batch = buffer.sample(params['batch_size'])
-        loss_v = common.calc_loss_dqn(batch, net, tgt_net.target_model, gamma=params['gamma']**args.nsteps, device=device)
+        loss_v = common.calc_loss_dqn(batch, net, tgt_net.target_model, gamma=params['gamma']**args.nsteps, device=device, double=args.double)
         if frame_idx % 1E3 == 0:
             writer.add_scalar("loss", loss_v, frame_idx)
         loss_v.backward()
@@ -129,6 +147,10 @@ with common.RewardTracker(writer, params['stop_reward']) as reward_tracker: #cre
 
         if frame_idx % params['target_net_sync'] == 0:
             tgt_net.sync()
+        
+        if frame_idx % EVAL_FREQ == 0:
+            mean_val = common.calc_values_of_states(eval_states, net, device=device)
+            writer.add_scalar("values_mean", mean_val, frame_idx)        
             
         if frame_idx > 3E6:
             break

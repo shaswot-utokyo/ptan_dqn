@@ -13,6 +13,9 @@ export PATH=$PYTHONUSERBASE/bin:$PATH
 
 
 # python dqn_basic.py --cuda --seed=${seed} ${experiment}
-python dqn_srg.py --cuda --seed=${seed} ${experiment}
+# python dqn_srg.py --cuda --seed=${seed} ${experiment}
+# python dqn_double.py --cuda --seed=${seed} --nsteps=${nsteps} --double --${experiment}
+python dqn_double.py --cuda --seed=${seed} --nsteps=1 --double --${experiment} 
+
 
 

@@ -237,7 +237,21 @@ def calc_values_of_states(states, net, device="cpu"):
         mean_vals.append(best_action_values_v.mean().item()) # take mean of the 64 max q_values
     return np.mean(mean_vals)
 
-def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu"):
+def calc_values_of_states_srg(states, net, device="cpu"):
+    mean_vals = []
+    # np.array_split splits the array into sub-arrays 
+    # (in this case, each sub-array has a max size of 64)
+    # For an array of length l that should be split into n sections, 
+    # it returns l % n sub-arrays of size l//n + 1 and the rest of size l//n.
+    for batch in np.array_split(states, 64): 
+        states_v = torch.tensor(batch).to(device)
+        action_values_v, _ = net(states_v) #get q_values of all actions for all the 64 states
+        best_action_values_v = action_values_v.max(1)[0] # get maximum q_values for each of the 64 states
+        mean_vals.append(best_action_values_v.mean().item()) # take mean of the 64 max q_values
+    return np.mean(mean_vals)
+
+
+def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu", double=False):
     states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
 
     states_v = torch.tensor(states).to(device)
@@ -257,6 +271,17 @@ def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu"):
     next_state_values[done_mask] = 0.0
     next_state_values = next_state_values.detach()
 
+    
+    if double: # double-DQN
+        next_state_all_values_net, _ = net(next_states_v)
+        next_state_actions = next_state_all_values_net.max(1)[1] # get greedy actions from policy net
+        next_state_all_values_tgt, _ = tgt_net(next_states_v)
+        next_state_values = next_state_all_values_tgt.gather(1, next_state_actions.unsqueeze(-1)).squeeze(-1)
+    else:
+        next_state_all_values, _ = tgt_net(next_states_v)
+        next_state_values = next_state_all_values.max(1)[0]
+    
+    next_state_values[done_mask] = 0.0
     expected_state_action_values = next_state_values * gamma + rewards_v
     
     feature_loss = torch.dist(state_features, next_state_features, p=2)

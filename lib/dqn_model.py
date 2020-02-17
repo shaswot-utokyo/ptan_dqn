@@ -89,9 +89,9 @@ class DQN(nn.Module):
         conv_out = self.conv(fx).view(fx.size()[0], -1)
         return self.fc(conv_out)
 
-class DQN_A(nn.Module):
+class DQN_srg(nn.Module):
     def __init__(self, input_shape, n_actions):
-        super(DQN_A, self).__init__()
+        super(DQN_srg, self).__init__()
 
         self.conv = nn.Sequential(
             nn.Conv2d(input_shape[0], 32, kernel_size=8, stride=4),

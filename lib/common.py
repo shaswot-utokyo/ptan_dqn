@@ -203,27 +203,6 @@ def unpack_batch(batch):
     return np.array(states, copy=False), np.array(actions), np.array(rewards, dtype=np.float32), \
            np.array(dones, dtype=np.bool_), np.array(last_states, copy=False)
 
-def calc_loss_dqn(batch, net, tgt_net, gamma, device="cpu", double=False):
-    states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
-
-    states_v = torch.tensor(states).to(device)
-    next_states_v = torch.tensor(next_states).to(device)
-    actions_v = torch.tensor(actions).to(device)
-    rewards_v = torch.tensor(rewards).to(device)
-    done_mask = torch.tensor(dones,dtype=torch.bool).to(device)
-
-    state_action_values = net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
-    if double: # double-DQN
-        next_state_actions = net(next_states_v).max(1)[1] # get greedy actions from policy net
-        next_state_values = tgt_net(next_states_v).gather(1, next_state_actions.unsqueeze(-1)).squeeze(-1)
-    else:
-        next_state_values = tgt_net(next_states_v).max(1)[0]
-    next_state_values[done_mask] = 0.0
-
-    expected_state_action_values = next_state_values.detach() * gamma + rewards_v
-    return nn.MSELoss()(state_action_values, expected_state_action_values)
-
-# 
 def calc_values_of_states(states, net, device="cpu"):
     mean_vals = []
     # np.array_split splits the array into sub-arrays 
@@ -250,8 +229,28 @@ def calc_values_of_states_srg(states, net, device="cpu"):
         mean_vals.append(best_action_values_v.mean().item()) # take mean of the 64 max q_values
     return np.mean(mean_vals)
 
+def calc_loss_dqn(batch, net, tgt_net, gamma, device="cpu", double=False):
+    states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
 
-def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu", double=False):
+    states_v = torch.tensor(states).to(device)
+    next_states_v = torch.tensor(next_states).to(device)
+    actions_v = torch.tensor(actions).to(device)
+    rewards_v = torch.tensor(rewards).to(device)
+    done_mask = torch.tensor(dones,dtype=torch.bool).to(device)
+
+    state_action_values = net(states_v).gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
+    if double: # double-DQN
+        next_state_actions = net(next_states_v).max(1)[1] # get greedy actions from policy net
+        next_state_values = tgt_net(next_states_v).gather(1, next_state_actions.unsqueeze(-1)).squeeze(-1)
+    else:
+        next_state_values = tgt_net(next_states_v).max(1)[0]
+    next_state_values[done_mask] = 0.0
+
+    expected_state_action_values = next_state_values.detach() * gamma + rewards_v
+    return nn.MSELoss()(state_action_values, expected_state_action_values)
+
+
+def calc_loss_srg_ratio(batch, net, tgt_net, gamma, device="cpu", double=False, loss_ratio=1E-4):
     states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
 
     states_v = torch.tensor(states).to(device)
@@ -287,38 +286,78 @@ def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu", double=False):
     feature_loss = torch.dist(state_features, next_state_features, p=2)
     qvalue_loss = nn.MSELoss()(state_action_values, expected_state_action_values)
     
-    loss = 1E-4*feature_loss + qvalue_loss
+    loss = loss_ratio*feature_loss + qvalue_loss
     
     return loss, feature_loss, qvalue_loss
 
-def calc_loss_srg_disabled(batch, net, tgt_net, gamma, device="cpu"):
-    states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
+# def calc_loss_srg(batch, net, tgt_net, gamma, device="cpu", double=False):
+#     states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
 
-    states_v = torch.tensor(states).to(device)
-    next_states_v = torch.tensor(next_states).to(device)
-    actions_v = torch.tensor(actions).to(device)
-    rewards_v = torch.tensor(rewards).to(device)
-    done_mask = torch.tensor(dones,dtype=torch.bool).to(device)
+#     states_v = torch.tensor(states).to(device)
+#     next_states_v = torch.tensor(next_states).to(device)
+#     actions_v = torch.tensor(actions).to(device)
+#     rewards_v = torch.tensor(rewards).to(device)
+#     done_mask = torch.tensor(dones,dtype=torch.bool).to(device)
 
-    state_action_all_values, state_features = net(states_v)
-    state_action_values = state_action_all_values.gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
-    with torch.no_grad():
-        _, next_state_features = net(next_states_v)
-    next_state_features.detach()
+#     state_action_all_values, state_features = net(states_v)
+#     state_action_values = state_action_all_values.gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
+#     with torch.no_grad():
+#         _, next_state_features = net(next_states_v)
+#     next_state_features.detach()
     
-    next_state_all_values, _ = tgt_net(next_states_v)
-    next_state_values = next_state_all_values.max(1)[0]
-    next_state_values[done_mask] = 0.0
-    next_state_values = next_state_values.detach()
+#     next_state_all_values, _ = tgt_net(next_states_v)
+#     next_state_values = next_state_all_values.max(1)[0]
+#     next_state_values[done_mask] = 0.0
+#     next_state_values = next_state_values.detach()
 
-    expected_state_action_values = next_state_values * gamma + rewards_v
     
-    feature_loss = torch.dist(state_features, next_state_features, p=2)
-    qvalue_loss = nn.MSELoss()(state_action_values, expected_state_action_values)
+#     if double: # double-DQN
+#         next_state_all_values_net, _ = net(next_states_v)
+#         next_state_actions = next_state_all_values_net.max(1)[1] # get greedy actions from policy net
+#         next_state_all_values_tgt, _ = tgt_net(next_states_v)
+#         next_state_values = next_state_all_values_tgt.gather(1, next_state_actions.unsqueeze(-1)).squeeze(-1)
+#     else:
+#         next_state_all_values, _ = tgt_net(next_states_v)
+#         next_state_values = next_state_all_values.max(1)[0]
     
-    loss = qvalue_loss
+#     next_state_values[done_mask] = 0.0
+#     expected_state_action_values = next_state_values * gamma + rewards_v
     
-    return loss, feature_loss, qvalue_loss
+#     feature_loss = torch.dist(state_features, next_state_features, p=2)
+#     qvalue_loss = nn.MSELoss()(state_action_values, expected_state_action_values)
+    
+#     loss = 1E-4*feature_loss + qvalue_loss
+    
+#     return loss, feature_loss, qvalue_loss
+
+# def calc_loss_srg_disabled(batch, net, tgt_net, gamma, device="cpu"):
+#     states, actions, rewards, dones, next_states = unpack_batch(batch) # returns numpy arrays
+
+#     states_v = torch.tensor(states).to(device)
+#     next_states_v = torch.tensor(next_states).to(device)
+#     actions_v = torch.tensor(actions).to(device)
+#     rewards_v = torch.tensor(rewards).to(device)
+#     done_mask = torch.tensor(dones,dtype=torch.bool).to(device)
+
+#     state_action_all_values, state_features = net(states_v)
+#     state_action_values = state_action_all_values.gather(1, actions_v.unsqueeze(-1)).squeeze(-1)
+#     with torch.no_grad():
+#         _, next_state_features = net(next_states_v)
+#     next_state_features.detach()
+    
+#     next_state_all_values, _ = tgt_net(next_states_v)
+#     next_state_values = next_state_all_values.max(1)[0]
+#     next_state_values[done_mask] = 0.0
+#     next_state_values = next_state_values.detach()
+
+#     expected_state_action_values = next_state_values * gamma + rewards_v
+    
+#     feature_loss = torch.dist(state_features, next_state_features, p=2)
+#     qvalue_loss = nn.MSELoss()(state_action_values, expected_state_action_values)
+    
+#     loss = qvalue_loss
+    
+#     return loss, feature_loss, qvalue_loss
 
 
 

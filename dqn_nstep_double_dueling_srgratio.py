@@ -1,4 +1,8 @@
 # Training DQN using PTAN library
+# USAGE:
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=<seed_value> --nsteps=<rollout_length> --double --dueling --srg=<srg_ratio> <experiment>
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=123 --nsteps=3 --double --dueling pong
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=123 --nsteps=3 --double --dueling --srg=0.0001 pong
 
 import warnings
 warnings.filterwarnings('ignore',category=FutureWarning) 
@@ -22,18 +26,21 @@ import os
 import random
 import numpy as np
 
+SEED_DEFAULT = 42
 ROLLOUT_STEPS_DEFAULT = 1
+# SRG_RATIO_DEFAULT = 1E-4
 # evaluate Q-values of random states
-NO_OF_STATES_TO_EVALUATE = 1000 # how many states to sample to evaluate
+NO_OF_STATES_TO_EVALUATE = 1000 # how many states to sample to evaluate mean q-value
 EVAL_FREQ = 100 # how often to evaluate
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cuda", default=False, action="store_true", help="Enable GPU [default:False]")
-parser.add_argument("--seed", default=42, type=int, help="Set seed [default: 42]")
+parser.add_argument("--seed", default=SEED_DEFAULT, type=int, help="Set seed [default: 42]")
 parser.add_argument("--nsteps", default=ROLLOUT_STEPS_DEFAULT, type=int, help="Count of steps to unroll Bellman")
 parser.add_argument("--double", default=False, action="store_true", help="Enable double DQN")
+parser.add_argument("--dueling", default=False, action="store_true", help="Enable double DQN")
+parser.add_argument("--srg", default=None, type=float, help="Enable state-feature regularization")
 parser.add_argument("experiment", help="Experiment to run. Specified in ./lib/common.py")
-
 args = parser.parse_args()
 
 
@@ -71,13 +78,34 @@ tag = params['run_name'] + '-' + nstep_tag  # nstep rollouts
 if args.double:
     double_tag = 'double'
     tag = tag + '-' + double_tag # double dqn
-tag = tag + '-'+ str(seed) # seed
+    
+if args.dueling:
+    dueling_tag = 'dueling'
+    tag = tag + '-' + dueling_tag # double dqn
 
-writer_folder = './runs/'+ params['run_name'] + "-" + nstep_tag  + '-' + double_tag + "/" + str(seed) +  '-' + datetime.datetime.now().strftime("%d-%b-%H-%M-%S")
+if args.srg is not None:
+    srg_tag = 'srg_'+ str(args.srg)
+    tag = tag + '-'+ srg_tag  
+tag = tag + '-' + str(seed) # seed
+tag = tag + '-' + datetime.datetime.now().strftime("%d-%b-%H-%M-%S")
+print("TAG: ",tag)
+writer_folder = './runs/'+ params['run_name'] + "-" + nstep_tag +"/" + tag
 writer = SummaryWriter(log_dir=writer_folder)
 
-net = dqn_model.DQN(env.observation_space.shape, 
-                    env.action_space.n).to(device)
+if args.srg is not None:
+    if args.dueling:
+        net = dqn_model.DuelingDQN_srg(env.observation_space.shape, 
+                        env.action_space.n).to(device)
+    else:
+        net = dqn_model.DQN_srg(env.observation_space.shape, 
+                            env.action_space.n).to(device)
+else:
+    if args.dueling:
+        net = dqn_model.DuelingDQN(env.observation_space.shape, 
+                        env.action_space.n).to(device)
+    else:
+        net = dqn_model.DQN(env.observation_space.shape, 
+                            env.action_space.n).to(device)
 
 tgt_net = ptan.agent.TargetNet(net)
 
@@ -86,8 +114,35 @@ epsilon_tracker = common.EpsilonTracker(selector, params)
 # EpsilonTracker has only one method frame(frame_idx) which changes the epsilon value 
 # of selector=>ptan.actions.EpsilonGreedyActionSelector depending upon the frame
 
-agent = ptan.agent.DQNAgent(net, selector, device=device)
+class DQNAgent_srg(ptan.agent.BaseAgent):
+    """
+    DQNAgent is a memoryless DQN agent which calculates Q values
+    from the observations and  converts them into the actions using action_selector
+    """
+    def __init__(self, dqn_model, action_selector, device="cpu", preprocessor=ptan.agent.default_states_preprocessor):
+        self.dqn_model = dqn_model
+        self.action_selector = action_selector
+        self.preprocessor = preprocessor
+        self.device = device
 
+    @torch.no_grad()
+    def __call__(self, states, agent_states=None):
+        if agent_states is None:
+            agent_states = [None] * len(states)
+        if self.preprocessor is not None:
+            states = self.preprocessor(states)
+            if torch.is_tensor(states):
+                states = states.to(self.device)
+        q_v, _ = self.dqn_model(states)
+        q = q_v.data.cpu().numpy()
+        actions = self.action_selector(q)
+        return actions, agent_states
+    
+if args.srg is not None:
+    agent = DQNAgent_srg(net, selector, device=device)
+else:
+    agent = ptan.agent.DQNAgent(net, selector, device=device)
+    
 exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=params['gamma'], steps_count=args.nsteps)
 
 buffer = ptan.experience.ExperienceReplayBuffer(exp_source, buffer_size=params['replay_size'])
@@ -139,9 +194,23 @@ with common.RewardTracker(writer, params['stop_reward']) as reward_tracker: #cre
 
         optimizer.zero_grad()
         batch = buffer.sample(params['batch_size'])
-        loss_v = common.calc_loss_dqn(batch, net, tgt_net.target_model, gamma=params['gamma']**args.nsteps, device=device, double=args.double)
-        if frame_idx % 1E3 == 0:
-            writer.add_scalar("loss", loss_v, frame_idx)
+        if args.srg is not None: #state regularization
+            loss_v, feature_loss, qvalue_loss = common.calc_loss_srg_ratio(batch, net, tgt_net.target_model,
+                                                                           gamma=params['gamma']**args.nsteps, 
+                                                                           device=device, 
+                                                                           double=args.double,
+                                                                           loss_ratio=args.srg)
+            if frame_idx % 1E3 == 0:
+                writer.add_scalar("loss", loss_v, frame_idx)
+                writer.add_scalar("feature_loss", feature_loss, frame_idx)
+                writer.add_scalar("qvalue_loss", qvalue_loss, frame_idx)
+        else:
+            loss_v = common.calc_loss_dqn(batch, net, tgt_net.target_model, 
+                                          gamma=params['gamma']**args.nsteps,
+                                          device=device,
+                                          double=args.double)
+            if frame_idx % 1E3 == 0:
+                writer.add_scalar("loss", loss_v, frame_idx)
         loss_v.backward()
         optimizer.step()
 
@@ -149,7 +218,10 @@ with common.RewardTracker(writer, params['stop_reward']) as reward_tracker: #cre
             tgt_net.sync()
         
         if frame_idx % EVAL_FREQ == 0:
-            mean_val = common.calc_values_of_states(eval_states, net, device=device)
+            if args.srg is not None:
+                mean_val = common.calc_values_of_states_srg(eval_states, net, device=device)
+            else:
+                mean_val = common.calc_values_of_states(eval_states, net, device=device)
             writer.add_scalar("values_mean", mean_val, frame_idx)        
             
         if frame_idx > 3E6:

@@ -24,7 +24,7 @@
 #SBATCH -n 1
 
 # Number of cores per task
-#SBATCH -c 6
+#SBATCH -c 12
 
 # Memory per node
 #SBATCH --mem 12GB

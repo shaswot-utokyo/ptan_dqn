@@ -224,7 +224,7 @@ with common.RewardTracker(writer, params['stop_reward']) as reward_tracker: #cre
                 mean_val = common.calc_values_of_states(eval_states, net, device=device)
             writer.add_scalar("values_mean", mean_val, frame_idx)        
             
-        if frame_idx > 3E6:
+        if frame_idx > 1E6:
             break
 
 import os.path

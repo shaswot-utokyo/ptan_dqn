@@ -14,3 +14,4 @@ done < "$filename"
 
 ## USAGE
 ## Sends out jobs to slurm. Each job contains one seed run of one experiment
+# ./ist_dispatcher.sh seed_list.dat pong

@@ -59,6 +59,7 @@ experiment=$2
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double $2
 
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --dueling $2
+# IST PENDING
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --dueling $2
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --dueling $2
 

@@ -48,6 +48,20 @@ HYPERPARAMS = {
         'gamma':            0.99,
         'batch_size':       64 # increased batch size to 64
     },
+     'pong': {
+        'env_name':         "PongNoFrameskip-v4",
+        'stop_reward':      18.0,
+        'run_name':         'pong',
+        'replay_size':      100000,
+        'replay_initial':   10000,
+        'target_net_sync':  1000,
+        'epsilon_frames':   10**5,
+        'epsilon_start':    1.0,
+        'epsilon_final':    0.02,
+        'learning_rate':    0.0001,
+        'gamma':            0.99,
+        'batch_size':       32
+    },
     'mypong3': {
         'env_name':         "PongNoFrameskip-v4",
         'stop_reward':      18.0,
@@ -81,20 +95,6 @@ HYPERPARAMS = {
         'stop_reward':      18.0,
         'run_name':         'mypong',
         'replay_size':      10000, #decreased from original by a factor of 10
-        'replay_initial':   10000,
-        'target_net_sync':  1000,
-        'epsilon_frames':   10**5,
-        'epsilon_start':    1.0,
-        'epsilon_final':    0.02,
-        'learning_rate':    0.0001,
-        'gamma':            0.99,
-        'batch_size':       32
-    },
-    'pong': {
-        'env_name':         "PongNoFrameskip-v4",
-        'stop_reward':      18.0,
-        'run_name':         'pong',
-        'replay_size':      100000,
         'replay_initial':   10000,
         'target_net_sync':  1000,
         'epsilon_frames':   10**5,

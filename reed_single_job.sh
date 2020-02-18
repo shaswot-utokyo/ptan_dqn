@@ -23,9 +23,12 @@ export PATH=$PYTHONUSERBASE/bin:$PATH
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=<seed_value> --nsteps=<rollout_length> --double --dueling --srg=<srg_ratio> <experiment>
 
 # # SRG = OFF
-# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=1 ${experiment}
-# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=2 ${experiment}
-# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=3 ${experiment}
+
+#python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=1 ${experiment}
+#python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=2 ${experiment}
+
+#Pending
+python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=3 ${experiment}
 
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=1 --double ${experiment}
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=2 --double ${experiment}

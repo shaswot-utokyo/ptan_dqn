@@ -16,3 +16,4 @@ done < "$filename"
 
 ## USAGE
 ## Sends out jobs to PBS. Each job contains one seed run of one experiment
+#  ./reed_dispatcher.sh seed_list.dat pong

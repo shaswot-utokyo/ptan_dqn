@@ -33,6 +33,9 @@
 # get file with the list of seeds
 seed=$1
 experiment=$2
+
+# OLD JOBS
+#################################################################################################
 # python dqn_test.py --cuda --seed=$1 $2
 # python dqn_basic.py --cuda --seed=$1 $2
 # python dqn_srg.py --cuda --seed=$1 $2
@@ -40,11 +43,79 @@ experiment=$2
 # python dqn_nstep_double_dueling.py --cuda --seed=$1 --nsteps=3 --double --dueling $2
 # python dqn_nstep_double_dueling_srg.py --cuda --seed=$1 --nsteps=3 --double --dueling $2
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --dueling --srg=0.0001 $2
+#################################################################################################
+
+# NEW JOBS
+# USAGE:
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=<seed_value> --nsteps=<rollout_length> --double --dueling --srg=<srg_ratio> <experiment>
+
+# # SRG = OFF
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --dueling $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --dueling $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --dueling $2
+
+# # SRG = 0.0001
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --srg=0.0001 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --srg=0.0001 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --srg=0.0001 $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --srg=0.0001 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --srg=0.0001 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --srg=0.0001 $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --dueling --srg=0.0001 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --dueling --srg=0.0001 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --dueling --srg=0.0001 $2
+
+# # SRG = 0.0002
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --srg=0.0002 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --srg=0.0002 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --srg=0.0002 $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --srg=0.0002 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --srg=0.0002 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --srg=0.0002 $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --dueling --srg=0.0002 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --dueling --srg=0.0002 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --dueling --srg=0.0002 $2
+
+# # SRG = 0.0005
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --srg=0.0005 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --srg=0.0005 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --srg=0.0005 $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --srg=0.0005 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --srg=0.0005 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --srg=0.0005 $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --dueling --srg=0.0005 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --dueling --srg=0.0005 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --dueling --srg=0.0005 $2
+
+# # SRG = 0.0008
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --srg=0.0008 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --srg=0.0008 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --srg=0.0008 $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --srg=0.0008 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --srg=0.0008 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --srg=0.0008 $2
+
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=1 --double --dueling --srg=0.0008 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=2 --double --dueling --srg=0.0008 $2
+# python dqn_nstep_double_dueling_srgratio.py --cuda --seed=$1 --nsteps=3 --double --dueling --srg=0.0008 $2
 
 
-
-
-sstat -p -j $SLURM_JOB_ID.batch --format=JobID,MaxRss,MaxVMSize,NTasks,ConsumedEnergy
+sstat -p -j $SLURM_JOB_ID.batch --format=JobID,MaxRss,MaxVMSize,NTasks,ConsumedEnergy,elapsed
 ##sacct -j %j --format=User,JobID,Jobname,partition,state,time,start,end,elapsed,MaxRss,MaxVMSize,nnodes,ncpus,nodelist
 
 ## USAGE

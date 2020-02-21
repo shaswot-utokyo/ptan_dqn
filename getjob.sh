@@ -2,7 +2,7 @@
 
 
 for f in ./ist_job_temp_summary/*; do
-    echo "Processing $f file..."
+    echo "IST Processing $f file..."
     # take action on each file. $f store current file name
     echo "${f##*.}" 
     printf "\n" >> $f

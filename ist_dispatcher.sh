@@ -9,7 +9,7 @@ do
     ## reading each line
     echo "$line"
     sbatch ist_single_job.sh "$line" "$2"
-    sleep 5 
+    sleep 3 
 done < "$filename"
 
 ## USAGE

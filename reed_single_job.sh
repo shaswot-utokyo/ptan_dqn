@@ -36,7 +36,6 @@ export PATH=$PYTHONUSERBASE/bin:$PATH
 # REED 
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=1 --dueling ${experiment}
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=2 --dueling ${experiment}
-#>>
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=3 --dueling ${experiment}
 
 # IST
@@ -62,6 +61,7 @@ export PATH=$PYTHONUSERBASE/bin:$PATH
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=2 --double --dueling --srg=0.0001 ${experiment}
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=3 --double --dueling --srg=0.0001 ${experiment}
 
+
 # REED
 # # SRG = 0.0002
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=1 --srg=0.0002 ${experiment}
@@ -80,7 +80,7 @@ export PATH=$PYTHONUSERBASE/bin:$PATH
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=2 --double --dueling --srg=0.0002 ${experiment}
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=3 --double --dueling --srg=0.0002 ${experiment}
 
-# IST
+# XXXIST
 # # SRG = 0.0005
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=1 --srg=0.0005 ${experiment}
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=2 --srg=0.0005 ${experiment}
@@ -98,7 +98,7 @@ export PATH=$PYTHONUSERBASE/bin:$PATH
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=2 --double --dueling --srg=0.0005 ${experiment}
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=3 --double --dueling --srg=0.0005 ${experiment}
 
-# # SRG = 0.0008
+# # IST = 0.0008
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=1 --srg=0.0008 ${experiment}
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=2 --srg=0.0008 ${experiment}
 # python dqn_nstep_double_dueling_srgratio.py --cuda --seed=${seed} --nsteps=3 --srg=0.0008 ${experiment}

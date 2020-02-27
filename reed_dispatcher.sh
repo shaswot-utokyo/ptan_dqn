@@ -11,7 +11,7 @@ do
 #     qsub -v seed="$line",experiment="$2" reed_single_job.sh    
     qsub -v seed="$line",experiment="$2",  reed_single_job.sh
 
-    sleep 5 
+    sleep 3 
 done < "$filename"
 
 ## USAGE

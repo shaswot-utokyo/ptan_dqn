@@ -16,7 +16,10 @@ trials/
 *.pt
 
 # Job logs
+/reed_job_temp
 /ist_job_temp
+/reed_job_temp_summary
+/ist_job_temp_summary
 /job_outputs
 
 # Recording
